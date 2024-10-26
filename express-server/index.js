@@ -7,6 +7,19 @@ const PORT = 3000;
 
 app.use(express.urlencoded({ extended : false}))
 
+app.use((req,res,next)=>{
+    let timestamp = Date.now();
+    let date = new Date(timestamp).toString()
+    let userData = {
+        "Date" : date,
+        "IPadd" : req.ip,
+        "Method" : req.method
+    }
+    fs.appendFile('./log.txt',`${date}\n${req.ip}\n${req.method}\n`,(err,data)=>{
+        next()
+    })
+})
+
 
 // for mobile
 app.get("/users",(req,res)=>{
@@ -19,6 +32,7 @@ app.get("/users",(req,res)=>{
 })
 // for browser
 app.get("/api/users",(req,res)=>{
+    res.setHeader("x-name","Meekail")
     return res.json(mockData)
 })
 
@@ -28,18 +42,11 @@ app.route("/api/users/:id").get((req, res) => {
     return res.json(user);
 })
 
-// app.post("/api/users",(req,res)=>{
-//     const body = req.body;
-//     mockData.push({...body,id:mockData.length+1})
-//     fs.writeFile('./MOCK_DATA.json',JSON,stringify(mockData),(err,data)=>{
-//         return res.send({status : "pendding"})
-//     })
-
-// })
 
 app.post("/api/users", (req, res) => {
     const body = req.body;
-
+    
+    
     // Add the new user data with a new ID
     mockData.push({ ...body, id: mockData.length + 1 });
 
