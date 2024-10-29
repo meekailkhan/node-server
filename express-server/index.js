@@ -1,67 +1,106 @@
 const express = require("express");
 const app = express();
-const mockData = require('./MOCK_DATA.json')
-const fs = require('fs');
 // const stringify = require("querystring");
 const PORT = 3000;
 
-app.use(express.urlencoded({ extended : false}))
+app.use(express.urlencoded({ extended: false }))
 
-app.use((req,res,next)=>{
+mongoose.connect('mongodb://127.0.0.1:27017/employee')
+    .then(() => {
+        console.log("mongodb connected successfully")
+    }).catch((err) => {
+        console.log("mongo error", err);
+    })  
+
+
+const userSchema = new mongoose.Schema({
+    first_name: {
+        type: String,
+        required: true
+    },
+    last_name: {
+        type: String
+    },
+    email: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    gender: {
+        type: String
+    }
+},
+    {timestamp : true}
+)
+
+const User = mongoose.model("user", userSchema)
+
+app.use((req, res, next) => {
     let timestamp = Date.now();
     let date = new Date(timestamp).toString()
     let userData = {
-        "Date" : date,
-        "IPadd" : req.ip,
-        "Method" : req.method
+        "Date": date,
+        "IPadd": req.ip,
+        "Method": req.method
     }
-    fs.appendFile('./log.txt',`${date}\n${req.ip}\n${req.method}\n`,(err,data)=>{
+    fs.appendFile('./log.txt', `${date}\n${req.ip}\n${req.method}\n`, (err, data) => {
         next()
     })
 })
 
 
 // for mobile
-app.get("/users",(req,res)=>{
+app.get("/users", async(req, res) => {
+    const user = await User.find({})
     const html = `
     <ul>
-      ${mockData.map((item)=> `<li>${item.first_name}</li>`).join("")}
+      ${user.map((item) => `<li>${item.first_name}</li>`).join("")}
     </ul>
     `
     res.send(html)
 })
 // for browser
-app.get("/api/users",(req,res)=>{
-    res.setHeader("x-name","Meekail")
-    return res.json(mockData)
+app.get("/api/users", async(req, res) => {
+    const user = await User.find({});
+    return res.status(200).json(user)
 })
 
-app.route("/api/users/:id").get((req, res) => {
-    const id = Number(req.params.id);
-    const user = mockData.find(user => user.id === id);
+
+
+app.route("/api/users/:id").get( async(req, res) => {
+    const user = await User.findById(req.params.id)
+    if (!user) return res.status(404).send({ err: "User Not Found" })
     return res.json(user);
+}).patch(async(req,res)=>{
+    await User.findByIdAndUpdate(req.params.id,{last_name:"changed"})
+    return res.status(201).json( {message : "update successfully"})
+}).delete(async(req,res)=>{
+    await User.findByIdAndDelete(req.params.id);
+    return res.json({message : "deleted successfully"})
 })
 
 
-app.post("/api/users", (req, res) => {
+app.post("/api/users", async (req, res) => {
     const body = req.body;
-    
-    
-    // Add the new user data with a new ID
-    mockData.push({ ...body, id: mockData.length + 1 });
+
+    if (!body || !body.first_name || !body.last_name || !body.email || !body.gender) {
+        return res.status(400).send({ message: "All field are required" })
+    }
+        
 
     // Write the updated data back to the MOCK_DATA.json file
-    fs.writeFile('./MOCK_DATA.json', JSON.stringify(mockData, null, 2), (err) => {
-        if (err) {
-            return res.status(500).send({ status: "error", message: "Failed to update data" });
-        }
+    const result = await User.create({
+        first_name: body.first_name,
+        last_name: body.last_name,
+        email: body.email,
+        gender: body.gende
+    })
 
-        return res.send({ status: "success", message: "Data added successfully" });
-    });
+    res.status(201).json({ msg: 'user created' })
 });
 
 
 
 
 
-app.listen(PORT,()=>{console.log(`listing port at ${PORT}`)})
+app.listen(PORT, () => { console.log(`listing port at ${PORT}`) })
