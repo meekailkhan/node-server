@@ -92,7 +92,7 @@ app.post("/api/users", async (req, res) => {
     const result = await User.create({
         first_name: body.first_name,
         last_name: body.last_name,
-        email: body.email,
+        email: body.email,      
         gender: body.gende
     })
 
