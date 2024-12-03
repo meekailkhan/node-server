@@ -11,4 +11,3 @@ router.route('/:id')
 .delete(controller)
 
 
-export default router
