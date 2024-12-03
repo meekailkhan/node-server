@@ -1,11 +1,11 @@
 import db from '../modles/user.js'
 
-async function allInOneFn(req, res) {
+async function allRequestHandler(req, res) {
     switch (req.method) {
         // ==========on get request===========
         case "GET":
             try {
-                const id  = req.params.id; 
+                const id = req.params.id;
 
                 if (id) {
                     const user = await db.User.findById(id);
@@ -65,12 +65,12 @@ async function allInOneFn(req, res) {
         case "DELETE":
             try {
                 const id = req.params.id;
-                if(!id){
-                    res.status(400).json({msg : "id is required for delete user"})
+                if (!id) {
+                    res.status(400).json({ msg: "id is required for delete user" })
                 }
                 const result = await db.User.findByIdAndDelete(id);
-                if(!result){
-                    res.status(404).json({msg : "user not found"});
+                if (!result) {
+                    res.status(404).json({ msg: "user not found" });
                 }
                 console.log(result)
                 return res.status(200).json({ msg: "delete user successfully" })
@@ -84,6 +84,7 @@ async function allInOneFn(req, res) {
 
 }
 
+export default allRequestHandler
 
 // async function getUserById(req, res) {
 //     try {
@@ -95,7 +96,6 @@ async function allInOneFn(req, res) {
 //     }
 // }
 
-export default allInOneFn
 
 
 // async function getAllUser(req, res) {

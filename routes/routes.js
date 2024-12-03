@@ -1,19 +1,14 @@
 import express from "express";
-import contro from '../controllers/controll.js'
+import controller from '../controllers/controll.js'
 
 const router = express.Router();
 
-router.get('/',contro)
+router.route("/").get(controller).post(controller)
 
-router.get('/:id', contro)
-
-
-router.post("/", contro)
-
-router.patch('/:id',contro);
-
-
-router.delete('/:id', contro);
+router.route('/:id')
+.get(controller)
+.patch(controller)
+.delete(controller)
 
 
 export default router
